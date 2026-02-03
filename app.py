@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import stat, os, shutil
 from git import Repo
@@ -7,21 +6,18 @@ from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from database import repo_vault
 from graph import robin_app
+from memory_engine import mem_client # IMPORTED TO SYNC MEMORY
 
-# --- INITIALIZE SESSION STATE ---
-# This must be the first thing after your imports to avoid AttributeErrors
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 def remove_readonly(func, path, _):
-    """Fix for WinError 5 on Windows"""
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
 st.set_page_config(page_title="ROBIN", page_icon="🚢", layout="wide")
 st.title("🚢 ROBIN: AI Archaeologist Dashboard")
 
-# --- SIDEBAR ---
 with st.sidebar:
     st.header("🧠 Model Selection")
     choice_label = st.radio("Choose Brain:", ["Llama 3 (Local)", "Gemini (Cloud)"], key="brain_select")
@@ -30,7 +26,7 @@ with st.sidebar:
     st.divider()
     st.header("📂 Data Ingestion")
     
-    # Git Repository
+    # GitHub Ingestion
     repo_url = st.text_input("GitHub URL:", placeholder="https://github.com/user/repo")
     if st.button("🚀 Ingest Repo"):
         with st.status("📥 Processing Repo...") as status:
@@ -43,16 +39,21 @@ with st.sidebar:
                     if f.endswith(('.py', '.md', '.txt')):
                         with open(os.path.join(root, f), 'r', encoding='utf-8', errors='ignore') as file:
                             all_docs.append(Document(page_content=file.read(), metadata={"source": f}))
+            
             chunks = RecursiveCharacterTextSplitter.from_language(Language.PYTHON, chunk_size=1200).split_documents(all_docs)
             repo_vault.add_documents(chunks)
+            
+            # Update Personal Memory about the new Repo
+            mem_client.add(f"I have indexed the GitHub repository: {repo_url}. It contains {len(all_docs)} files.", user_id="manoj_palla")
+            
             shutil.rmtree(temp_dir, onerror=remove_readonly)
-            status.update(label="✅ Success!", state="complete")
+            status.update(label="✅ Repo Indexed in Vault & Memory!", state="complete")
 
     st.divider()
     
-    # Local Files
+    # Local File Ingestion
     st.subheader("Local Documents")
-    uploaded_files = st.file_uploader("Upload Files", accept_multiple_files=True, key="file_upload_widget")
+    uploaded_files = st.file_uploader("Upload Files", accept_multiple_files=True)
     if st.button("📥 Process Uploads"):
         if uploaded_files:
             with st.status("📄 Indexing Documents...") as status:
@@ -66,42 +67,35 @@ with st.sidebar:
                         all_docs.extend(PyPDFLoader(path).load())
                     else:
                         all_docs.append(Document(page_content=f.read().decode('utf-8', errors='ignore'), metadata={"source": f.name}))
+                
                 chunks = RecursiveCharacterTextSplitter(chunk_size=1000).split_documents(all_docs)
-                repo_vault.add_documents(chunks)
-                status.update(label="✅ Files Indexed!", state="complete")
-            st.success("Indexing finished!")
+                repo_vault.add_documents(chunks) # Adds to Qdrant robin_knowledge
+                
+                # SYNC TO MEM0: Tell Robin Manoj uploaded these specific files
+                for doc in all_docs:
+                    source_name = doc.metadata.get('source', 'Unknown')
+                    mem_client.add(f"Manoj uploaded a document named {source_name}. It contains information regarding {doc.page_content[:200]}...", user_id="manoj_palla")
+                
+                status.update(label="✅ Memory & Vault Updated!", state="complete")
 
-# --- CHAT DISPLAY ---
-# Display existing chat history on every rerun
+# --- CHAT DISPLAY & LOGIC ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- CHAT INPUT & LOGIC ---
 if prompt := st.chat_input("Ask Robin..."):
-    # 1. Display and save user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # 2. Assistant response generation
     with st.chat_message("assistant"):
         with st.status("🚢 Robin is navigating the vaults...", expanded=True) as status:
-            st.write("🕵️ Routing intent (Technical vs. Personal)...")
-            
-            # Execute the Graph with the current message history
             result = robin_app.invoke({
                 "messages": st.session_state.messages, 
                 "model_choice": model_id
             })
-            
-            st.write("🔍 Accessing Qdrant for context...")
-            st.write("🧠 Integrating findings...")
-            
-            # Extract final answer
             ans = result["messages"][-1].content
-            status.update(label="✅ Context retrieved!", state="complete", expanded=False)
+            status.update(label="✅ Success!", state="complete", expanded=False)
         
-        # Display and save assistant message
         st.markdown(ans)
         st.session_state.messages.append({"role": "assistant", "content": ans})

@@ -6,8 +6,16 @@ REPO_COLLECTION = "robin_knowledge"
 MEM_COLLECTION = "robin_memories"
 OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 
+from typing import Annotated, TypedDict, List
+from langgraph.graph.message import add_messages
+
 # Get your key from Google AI Studio
-GEMINI_API_KEY = "AIzaSyA63j8p5wNTULorR7qg7fFnY4wCBpO8mu4"
+GEMINI_API_KEY = "AIzaSyAO0vydQscKNNUEzkhPjD7yhZn_n58Khts"
+
+class RobinState(TypedDict):
+    messages: Annotated[List, add_messages]
+    context: str
+    model_choice: str
 
 MEMORY_CONFIG = {
     "vector_store": {
