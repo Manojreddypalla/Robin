@@ -1,0 +1,6 @@
+langchain
+langchain-ollama
+langchain-qdrant
+gitingest
+python-dotenv
+qdrant-client
