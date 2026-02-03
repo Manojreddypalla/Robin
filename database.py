@@ -1,3 +1,4 @@
+# database.py
 from qdrant_client import QdrantClient
 from langchain_qdrant import QdrantVectorStore
 from langchain_ollama import OllamaEmbeddings
