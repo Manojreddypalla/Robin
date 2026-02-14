@@ -14,12 +14,7 @@ USER_ID = "manoj_palla"
 
 # 🔑 TEAM KEY VAULT
 _RAW_KEYS = [
-    "AIzaSyDz7y81ZVDowS0Og2MUmkVwDmniWXZPGpQ",  # 947
-    "AIzaSyDeKJADjyj6c8KveOURnbLgW6ZU4z0SHIE",  # clg
-    "AIzaSyALBU5hCuOSNnbspYsCaBP0wNclElwuy7Q",  # 232
-    "AIzaSyCKQihUT09CafqLSWuXT7A1i_tvw6JdtT0",  # holy knight 
-    "AIzaSyB6QODfEX7qHHT6YTbwYvhWMaJ9kSfSrJo",  # 27
-    "AIzaSyB_ZHg5l3VimBMngIcUK_YvlWtZKUCgcN8"   # Manoj's Key
+     # Manoj's Key
 ]
 
 # Clean keys and provide a global index for rotation
