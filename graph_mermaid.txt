@@ -1,0 +1,25 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	query_rewriter(query_rewriter)
+	repo_search(repo_search)
+	book_search(book_search)
+	personal_search(personal_search)
+	oracle(oracle)
+	__end__([<p>__end__</p>]):::last
+	__start__ -.-> oracle;
+	__start__ -.-> personal_search;
+	__start__ -. &nbsp;book_search&nbsp; .-> query_rewriter;
+	book_search --> oracle;
+	personal_search --> oracle;
+	query_rewriter -.-> book_search;
+	query_rewriter -.-> repo_search;
+	repo_search --> oracle;
+	oracle --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

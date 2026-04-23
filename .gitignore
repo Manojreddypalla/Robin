@@ -1,0 +1,39 @@
+# 🔹 Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 🔹 Virtual Environment
+venv/
+.venv/
+env/
+
+# 🔹 Environment files
+.env
+
+# 🔹 VS Code
+.vscode/
+
+# 🔹 Logs / temp
+*.log
+*.tmp
+
+# 🔹 OS files
+.DS_Store
+Thumbs.db
+
+# 🔹 Large / unnecessary files
+*.pdf
+*.zip
+*.png
+*.jpg
+
+# 🔹 Your folders (based on your project)
+books/
+data/
+personal_data/
+workspace/
+
+# 🔹 Build / cache
+.cache/

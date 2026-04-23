@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB (Chat History)
+  # Matches URI: mongodb://admin:admin@localhost:27017/?authSource=admin
+  mongo:
+    image: mongo:latest
+    container_name: robin-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes:
+      - mongo_data:/data/db
+
+  # 2. Qdrant (Vector Memory)
+  # Matches config: host=localhost, port=6333
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: robin-qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # 3. Neo4j (Graph Memory)
+  # Matches config: username=neo4j, password=password
+  neo4j:
+    image: neo4j:latest
+    container_name: robin-neo4j
+    ports:
+      - "7474:7474" # HTTP Browser UI
+      - "7687:7687" # Bolt Protocol (Python connects here)
+    environment:
+      NEO4J_AUTH: neo4j/password
+      # Optimization for lower memory usage on local dev
+      NEO4J_dbms_memory_pagecache_size: 512M
+      NEO4J_dbms_memory_heap_initial__size: 512M
+      NEO4J_dbms_memory_heap_max__size: 1G
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  mongo_data:
+  qdrant_data:
+  neo4j_data:
